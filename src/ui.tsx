@@ -1,4 +1,9 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+} from "react";
 
 export function ModalShell({
   title,
@@ -53,6 +58,24 @@ export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
         (props.className ?? "")
       }
     />
+  );
+}
+
+export function Select({
+  className,
+  children,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      className={
+        "w-full appearance-none rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 " +
+        (className ?? "")
+      }
+    >
+      {children}
+    </select>
   );
 }
 

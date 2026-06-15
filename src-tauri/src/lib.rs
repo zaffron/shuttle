@@ -231,6 +231,29 @@ fn check_environment() -> EnvCheck {
     }
 }
 
+// List the AWS profiles configured on this machine (`aws configure list-profiles`).
+// Returns an empty list if the aws CLI is missing or no profiles are configured.
+#[tauri::command]
+fn aws_profiles() -> Vec<String> {
+    let Some(aws) = find_binary("aws") else {
+        return Vec::new();
+    };
+    let output = Command::new(&aws)
+        .args(["configure", "list-profiles"])
+        .env("PATH", augmented_path())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .output();
+    match output {
+        Ok(out) if out.status.success() => String::from_utf8_lossy(&out.stdout)
+            .lines()
+            .map(|l| l.trim().to_string())
+            .filter(|l| !l.is_empty())
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
 #[tauri::command]
 fn get_config(state: State<AppState>) -> Config {
     state.config.lock().unwrap().clone()
@@ -497,6 +520,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             check_environment,
+            aws_profiles,
             get_config,
             save_config,
             test_connection,

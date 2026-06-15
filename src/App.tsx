@@ -70,8 +70,20 @@ export default function App() {
   const reportError = useCallback(
     (err: unknown) => {
       const msg = String(err);
-      if (/token has expired|sso|not authorized|expired/i.test(msg)) {
+      const missingProfile = msg.match(/config profile \(([^)]+)\) could not be found/i);
+      if (missingProfile) {
+        flash(
+          "err",
+          `AWS profile “${missingProfile[1]}” doesn't exist. Open Bastion settings to pick a configured profile.`,
+        );
+      } else if (/unable to locate credentials|you must specify a region|no credentials/i.test(msg)) {
+        flash("err", "No AWS credentials found — click “Sign in” for SSO, or run `aws configure`.");
+      } else if (/token has expired|sso session.*expired|refresh failed|expired or invalid|the sso session/i.test(msg)) {
         flash("err", `${msg} — click “Sign in” to refresh your AWS SSO session.`);
+      } else if (/public key not found/i.test(msg)) {
+        flash("err", `${msg}. Generate one with \`ssh-keygen -t ed25519\`.`);
+      } else if (/not authorized|accessdenied|unauthorizedoperation|is not authorized/i.test(msg)) {
+        flash("err", `${msg} — check your AWS permissions, or click “Sign in”.`);
       } else {
         flash("err", msg);
       }
